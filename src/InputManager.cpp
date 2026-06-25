@@ -1,7 +1,5 @@
-#include <InputManager.h>
-//#include <unordered_map>
-//#include <iostream>
-#include <console.h>
+#include "InputManager.h"
+#include <iostream>
 
 std::unordered_map<int, bool> InputManager::_keyStates;
 std::unordered_map<int, bool> InputManager::_previousKeyStates;
@@ -10,7 +8,7 @@ GLFWwindow* InputManager::_window;
 
 void InputManager::initialize(GLFWwindow* window) {
     if (!window) {
-        Console("Error: GLFW window is not initialized!");
+        std::cerr << "[InputManager] Error: GLFW window is not initialized!" << std::endl;
         return;
     }
     
@@ -32,7 +30,7 @@ void InputManager::initialize(GLFWwindow* window) {
 // Update keyStates based on input
 void InputManager::update() {
     if (_window == nullptr) {
-        Console("Error: Invalid GLFW window pointer!");
+        std::cerr << "[InputManager] Error: Invalid GLFW window pointer!" << std::endl;
         return;
     }   
     
