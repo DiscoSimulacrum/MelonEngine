@@ -1,6 +1,8 @@
 #include <iostream>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+
+#include "AssetLoader.h"
 #include "InputManager.h"
 
 const int WIDTH  = 800;
