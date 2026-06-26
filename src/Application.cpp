@@ -1,126 +1,186 @@
-﻿
-#include <GL/glew.h>
+#include <iostream>
+#include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
-//#include <iostream>
+#include "AssetLoader.h"
+#include "InputManager.h"
 
-#include <Console.h>
-#include <InputManager.h>
-#include <VertexBuffer.h>
+const int WIDTH  = 800;
+const int HEIGHT = 800;
 
+// =====================================================================
+// Shaders
+// =====================================================================
 
-int main(void)
-{
-    //GLFW Library Initialization
-    if (!glfwInit())
-        return -1;
-    Console("GLFW Initialized");
+const char* vertexShaderSrc = R"(
+    #version 330 core
+    layout (location = 0) in vec2 aPos;
 
-    //OpenGL Version and Profile
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    //glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
-    //glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    
-    //Create window (window mode) in OpenGL context
-    GLFWwindow* window = glfwCreateWindow(800, 800, "Melon Engine Demo", NULL, NULL);
-    if (!window)
-    {
-        Console("Error creating GLFW window! \_(-_-)_/");
-        glfwTerminate();
-        return -1;
+    void main() {
+        gl_Position = vec4(aPos, 0.0, 1.0);
+    }
+)";
+
+const char* fragmentShaderSrc = R"(
+    #version 330 core
+    out vec4 FragColor;
+
+    uniform vec4 uColor;
+
+    void main() {
+        FragColor = uColor;
+    }
+)";
+
+// =====================================================================
+// Geometry
+// =====================================================================
+
+float vertices[] = {
+    // top triangle
+    -0.3f,  0.0f,
+     0.3f,  0.0f,
+     0.0f,  0.5f,
+    // left triangle
+    -0.6f, -0.5f,
+     0.0f, -0.5f,
+    -0.3f,  0.0f,
+    // right triangle
+     0.0f, -0.5f,
+     0.6f, -0.5f,
+     0.3f,  0.0f,
+};
+
+// =====================================================================
+// State
+// =====================================================================
+
+GLuint VAO, VBO;
+GLuint shaderProgram;
+
+// =====================================================================
+// Shader utils
+// =====================================================================
+
+static GLuint compileShader(GLenum type, const char* src) {
+    GLuint shader = glCreateShader(type);
+    glShaderSource(shader, 1, &src, NULL);
+    glCompileShader(shader);
+
+    GLint success;
+    glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
+    if (!success) {
+        char log[512];
+        glGetShaderInfoLog(shader, 512, NULL, log);
+        std::cerr << "Shader compile error:\n" << log << std::endl;
+    }
+    return shader;
+}
+
+static GLuint createProgram(const char* vertSrc, const char* fragSrc) {
+    GLuint vert = compileShader(GL_VERTEX_SHADER,   vertSrc);
+    GLuint frag = compileShader(GL_FRAGMENT_SHADER, fragSrc);
+
+    GLuint program = glCreateProgram();
+    glAttachShader(program, vert);
+    glAttachShader(program, frag);
+    glLinkProgram(program);
+
+    GLint success;
+    glGetProgramiv(program, GL_LINK_STATUS, &success);
+    if (!success) {
+        char log[512];
+        glGetProgramInfoLog(program, 512, NULL, log);
+        std::cerr << "Shader link error:\n" << log << std::endl;
     }
 
-    /* Make the window's context current */
-    glfwMakeContextCurrent(window);
+    glDeleteShader(vert);
+    glDeleteShader(frag);
+    return program;
+}
 
-    //VSYNC
-    glfwSwapInterval(1);
+// =====================================================================
+// Pipeline
+// =====================================================================
 
-    // GLEW Initialization
-    glewInit();
+static void setup() {
+    shaderProgram = createProgram(vertexShaderSrc, fragmentShaderSrc);
 
-    if (glewInit() != GLEW_OK) {
-        Console("Error initializing GLEW!");
-        glfwTerminate();
-        return -1;
-    }
+    glGenVertexArrays(1, &VAO);
+    glGenBuffers(1, &VBO);
 
-    //Initialize Input Manager
-    //InputManager input;
-    InputManager::initialize(window);
+    glBindVertexArray(VAO);
 
-    //Test Triforce Render
-    GLfloat triforce[] = {
-        // Top triangle
-    -0.3f,  0.0f,  0.0f,  // Vertex 1
-     0.3f,  0.0f,  0.0f,  // Vertex 2
-     0.0f,  0.5f,  0.0f,  // Vertex 3
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-        // Left triangle
-    -0.6f, -0.5f,  0.0f,  // Vertex 4
-    0.0f, -0.5f,  0.0f,  // Vertex 5
-    -0.3f,  0.0f,  0.0f,  // Vertex 6
-
-        // Right triangle
-    0.0f, -0.5f,  0.0f,  // Vertex 7
-    0.6f, -0.5f,  0.0f,  // Vertex 8
-    0.3f,  0.0f,  0.0f   // Vertex 9
-    };
-
-    VBO vbo = createVBO(triforce, sizeof(triforce));
-    VAO vao = createVAO();
-    bindVBO(vbo);
-    bindVAO(vao);
-
-    // Define the vertex attributes
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 
-    // Unbind the VBO and VAO
-    unbindVBO();
-    unbindVAO();
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+}
 
+static void render() {
+    glClear(GL_COLOR_BUFFER_BIT);
 
+    glUseProgram(shaderProgram);
+    glUniform4f(glGetUniformLocation(shaderProgram, "uColor"), 0.2f, 0.75f, 0.3f, 1.0f);
 
-    /* Loop until the user closes the window */
-    while (!glfwWindowShouldClose(window))
-    {
-        //Testing input manager to console
-        InputManager::update();
+    glBindVertexArray(VAO);
+    glDrawArrays(GL_TRIANGLES, 0, 9);
+    glBindVertexArray(0);
+}
 
-        if (InputManager::actionPressed("Forward")) {
-            Console("W key - Forward");
-        }
-        else if (InputManager::actionPressed("Backward")) {
-            Console("S key - Backward");
-        }
-        else if (InputManager::actionPressed("Left")) {
-            Console("A key - Left");
-        }
-        else if (InputManager::actionPressed("Right")) {
-            Console("D key - Right");
-        }
-        
-        /* Render here */
-        bindVAO(vao);
-        glClear(GL_COLOR_BUFFER_BIT);
-        glDrawArrays(GL_TRIANGLES, 0, 9);
-        unbindVAO();
-        
-        /* Swap front and back buffers */
-        glfwSwapBuffers(window);
+static void cleanup() {
+    glDeleteVertexArrays(1, &VAO);
+    glDeleteBuffers(1, &VBO);
+    glDeleteProgram(shaderProgram);
+}
 
-        /* Poll for and process events */
-        glfwPollEvents();
+// =====================================================================
+// Entry point
+// =====================================================================
 
+int main() {
+    if (!glfwInit()) {
+        std::cerr << "Failed to initialize GLFW" << std::endl;
+        return -1;
     }
 
-    // Cleanup
-    deleteVBO(vbo);
-    deleteVAO(vao);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    //Terminate GLFW
-    glfwDestroyWindow(window);
+    GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "Melon Engine", NULL, NULL);
+    if (!window) {
+        std::cerr << "Failed to create GLFW window" << std::endl;
+        glfwTerminate();
+        return -1;
+    }
+
+    glfwMakeContextCurrent(window);
+
+    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
+        std::cerr << "Failed to initialize GLAD" << std::endl;
+        glfwTerminate();
+        return -1;
+    }
+
+    glViewport(0, 0, WIDTH, HEIGHT);
+    glClearColor(0.08f, 0.08f, 0.08f, 1.0f);
+
+    InputManager::initialize(window);
+    setup();
+
+    while (!glfwWindowShouldClose(window)) {
+        glfwPollEvents();
+        InputManager::update();
+        render();
+        glfwSwapBuffers(window);
+    }
+
+    cleanup();
     glfwTerminate();
     return 0;
 }
