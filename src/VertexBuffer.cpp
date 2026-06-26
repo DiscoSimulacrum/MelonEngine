@@ -1,4 +1,4 @@
-#include <VertexBuffer.h>
+#include "VertexBuffer.h"
 
 //Create a VBO and store in VBO struct
 VBO createVBO(const GLfloat* data, GLsizeiptr size) {

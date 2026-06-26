@@ -135,14 +135,22 @@
   <ItemGroup>
     <ClCompile Include="src\Application.cpp" />
     <ClCompile Include="src\AssetLoader.cpp" />
+    <ClCompile Include="src\Camera.cpp" />
     <ClCompile Include="src\glad.c" />
     <ClCompile Include="src\InputManager.cpp" />
+    <ClCompile Include="src\TestScene.cpp" />
+    <ClCompile Include="src\VertexBuffer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\AssetLoader.h" />
+    <ClInclude Include="src\Camera.h" />
     <ClInclude Include="src\InputManager.h" />
+    <ClInclude Include="src\Math.h" />
     <ClInclude Include="src\Mesh.h" />
+    <ClInclude Include="src\Scene.h" />
+    <ClInclude Include="src\TestScene.h" />
     <ClInclude Include="src\Texture.h" />
+    <ClInclude Include="src\VertexBuffer.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

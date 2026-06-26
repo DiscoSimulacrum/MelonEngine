@@ -8,7 +8,7 @@
 #include <array>
 
 #define STB_IMAGE_IMPLEMENTATION
-#include <stb/stb_image.h>
+#include "../Dependencies/stb/stb_image.h"
 
 // =====================================================================
 // OBJ loader
