@@ -1,8 +1,10 @@
 ﻿#pragma once
+#include <vector>
 #include "Scene.h"
 #include "AssetLoader.h"
 #include "Camera.h"
 #include "MelonMath.h"
+#include "Shader.h"
 #include <glad/glad.h>
 
 class SceneTest2 : public Scene {
@@ -12,8 +14,8 @@ public:
     void render()         override;
     void shutdown()       override;
 
-    Vec3  lightDir   = { 0.4f, 1.0f, 0.5f }; // world-space direction toward the light
-    Vec3  lightColor = { 1.0f, 1.0f, 1.0f };
+    // Position is overwritten each frame to track the camera; color is 4x the prior (2,2,2) brightness.
+    std::vector<PointLight> lights = { { Vec3(0.0f, 0.0f, 0.0f), Vec3(8.0f, 8.0f, 8.0f) } };
 
 private:
     Mesh    mesh;

@@ -28,8 +28,8 @@ void SceneMainMenu::init() {
 
     _items.clear();
     _items.push_back({ "Test Scene 1", MenuItemType::Scene, "Test1", "assets/meshes/model.obj",                 160, 170, 220,      1.5}); // smooshed disco cube
-    _items.push_back({ "Test Scene 2", MenuItemType::Scene, "Test2", "assets/meshes/icosphere.obj",             205, 235, 245,      1.0}); // pale ice blue
-    _items.push_back({ "Test Scene 3", MenuItemType::Scene, "Test3", "assets/meshes/icosphere.obj",             255, 255, 0  ,      1.0}); // bright yellow
+    _items.push_back({ "Test Scene 2", MenuItemType::Scene, "Test2", "assets/meshes/icosphere.obj",             205, 235, 205,      1.0}); // minecraft
+    _items.push_back({ "Test Scene 3", MenuItemType::Scene, "Test3", "assets/meshes/miltPlayer_menu.obj",       255, 255, 0  ,      7.0}); // bright yellow
     _items.push_back({ "Test Scene 4", MenuItemType::Scene, "Test4", "assets/meshes/utah_teapot_lowpoly.obj",   245, 240, 230,      0.4}); // utah teapot
     _items.push_back({ "Exit",         MenuItemType::Exit,  "",      "",                                        0,   0,   0  ,      1.0}); // Exit program
 
@@ -107,8 +107,7 @@ void SceneMainMenu::render() {
     glUseProgram(shaderProgram);
     glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "uView"),       1, GL_FALSE, camera.viewMatrix());
     glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "uProjection"), 1, GL_FALSE, camera.projectionMatrix());
-    glUniform3f(glGetUniformLocation(shaderProgram, "uLightDir"),   0.4f, 1.0f, 0.5f);
-    glUniform3f(glGetUniformLocation(shaderProgram, "uLightColor"), 1.0f, 1.0f, 1.0f);
+    setPointLights(shaderProgram, lights.data(), static_cast<int>(lights.size()));
     glUniform3f(glGetUniformLocation(shaderProgram, "uCameraPos"),
         camera.position.x, camera.position.y, camera.position.z);
 

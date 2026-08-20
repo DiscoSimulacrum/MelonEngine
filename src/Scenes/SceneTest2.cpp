@@ -6,8 +6,8 @@
 
 void SceneTest2::init() {
     shaderProgram = createLitShaderProgram();
-    mesh   = loadOBJ("assets/meshes/cirno.obj");
-    albedo = loadTexture("assets/textures/cirno.png");
+    mesh   = loadOBJ("assets/meshes/iscv2.obj");
+    albedo = loadSolidColorTexture(205, 235, 205);
 
     glUseProgram(shaderProgram);
     glUniform1i(glGetUniformLocation(shaderProgram, "uAlbedo"), 0);
@@ -22,6 +22,8 @@ void SceneTest2::update(float dt) {
     camera.setAspect(static_cast<float>(fbWidth) / static_cast<float>(fbHeight));
 
     camera.update(dt);
+
+    lights[0].position = camera.position; // light travels with the camera
 
     if (InputManager::keyJustPressed(GLFW_KEY_M)) {
         _sceneManager->requestScene("MainMenu");
@@ -40,8 +42,7 @@ void SceneTest2::render() {
     glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "uProjection"), 1, GL_FALSE, camera.projectionMatrix());
 
     // Lighting
-    glUniform3f(glGetUniformLocation(shaderProgram, "uLightDir"),   lightDir.x,   lightDir.y,   lightDir.z);
-    glUniform3f(glGetUniformLocation(shaderProgram, "uLightColor"), lightColor.x, lightColor.y, lightColor.z);
+    setPointLights(shaderProgram, lights.data(), static_cast<int>(lights.size()));
     glUniform3f(glGetUniformLocation(shaderProgram, "uCameraPos"),
         camera.position.x, camera.position.y, camera.position.z);
 

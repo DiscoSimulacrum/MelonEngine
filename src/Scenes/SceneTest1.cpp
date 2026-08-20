@@ -40,8 +40,7 @@ void SceneTest1::render() {
     glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "uProjection"), 1, GL_FALSE, camera.projectionMatrix());
 
     // Lighting
-    glUniform3f(glGetUniformLocation(shaderProgram, "uLightDir"),   lightDir.x,   lightDir.y,   lightDir.z);
-    glUniform3f(glGetUniformLocation(shaderProgram, "uLightColor"), lightColor.x, lightColor.y, lightColor.z);
+    setPointLights(shaderProgram, lights.data(), static_cast<int>(lights.size()));
     glUniform3f(glGetUniformLocation(shaderProgram, "uCameraPos"),
         camera.position.x, camera.position.y, camera.position.z);
 

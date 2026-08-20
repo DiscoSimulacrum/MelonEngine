@@ -5,6 +5,7 @@
 #include "AssetLoader.h"
 #include "Camera.h"
 #include "MelonMath.h"
+#include "Shader.h"
 #include <glad/glad.h>
 
 enum class MenuItemType {
@@ -21,8 +22,8 @@ struct MenuEntry {
     float scale = 1.0f;     // uniform scale applied to the item's mesh in the ring
 };
 
-// A Tomb-Raider/Silent-Hill-style ring of models: A/D spin the ring one slot
-// at a time to the next/previous item, Enter confirms whatever's centered.
+// A Tomb-Raider/Silent-Hill-style ring of models: A/D spin the ring and Enter selects the item/scene
+
 class SceneMainMenu : public Scene {
 public:
     void init()           override;
@@ -49,4 +50,10 @@ private:
     std::vector<Texture> _itemTextures; // one solid-color texture per entry in _items, indices aligned
     Mesh    exitMesh;
     Texture exitTexture;
+
+    //std::vector<PointLight> _lights = { { Vec3(3.0f, 6.0f, 8.0f), Vec3(3.0f, 3.0f, 3.0f) } };
+    std::vector<PointLight> lights = {
+        { Vec3(3.0f, 6.0f,  8.0f), Vec3(2.0f, 2.0f, 2.0f) },  // key
+        { Vec3(-5.0f, -2.0f,  9.0f), Vec3(1.0f, 1.1f, 1.2f) },  // fill
+    };
 };

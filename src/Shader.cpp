@@ -1,5 +1,6 @@
 #include "Shader.h"
 #include <iostream>
+#include <string>
 
 static const char* vertexShaderSrc = R"(
     #version 330 core
@@ -26,41 +27,49 @@ static const char* vertexShaderSrc = R"(
 
 static const char* fragmentShaderSrc = R"(
     #version 330 core
+    #define MAX_POINT_LIGHTS 4
+
     in  vec3 vWorldPos;
     in  vec3 vNormal;
     in  vec2 vTexCoord;
     out vec4 FragColor;
 
     uniform sampler2D uAlbedo;
-    uniform vec3      uLightDir;   // world-space direction toward the light (unnormalized ok)
-    uniform vec3      uLightColor;
     uniform vec3      uCameraPos;
+
+    uniform int  uLightCount;
+    uniform vec3 uLightPos[MAX_POINT_LIGHTS];
+    uniform vec3 uLightColor[MAX_POINT_LIGHTS];
 
     void main() {
         vec4 albedoSample = texture(uAlbedo, vTexCoord);
         vec3 albedo = albedoSample.rgb;
 
         vec3 N = normalize(vNormal);
-        vec3 L = normalize(uLightDir);
         vec3 V = normalize(uCameraPos - vWorldPos);
-        vec3 H = normalize(L + V);
 
         // Ambient
-        vec3 ambient = 0.08 * albedo;
+        vec3 result = 0.08 * albedo;
 
-        // Diffuse
-        float diff    = max(dot(N, L), 0.0);
-        vec3  diffuse = diff * uLightColor * albedo;
+        for (int i = 0; i < uLightCount; ++i) {
+            vec3  toLight = uLightPos[i] - vWorldPos;
+            float dist    = length(toLight);
+            vec3  L       = toLight / dist;
+            vec3  H       = normalize(L + V);
+            float atten   = 1.0 / (1.0 + 0.045 * dist + 0.0075 * dist * dist);
 
-        // Specular (Blinn-Phong)
-        float spec    = pow(max(dot(N, H), 0.0), 64.0);
-        vec3  specular = spec * uLightColor * 0.3;
+            // Diffuse
+            float diff    = max(dot(N, L), 0.0);
+            vec3  diffuse = diff * uLightColor[i] * albedo;
 
-        // Rim light: brightens edges facing away from the camera
-        float rim = pow(1.0 - max(dot(N, V), 0.0), 3.0);
-        vec3  rimLight = rim * uLightColor;
+            // Specular (Blinn-Phong)
+            float spec     = pow(max(dot(N, H), 0.0), 64.0);
+            vec3  specular = spec * uLightColor[i] * 0.3;
 
-        FragColor = vec4(ambient + diffuse + specular + rimLight, albedoSample.a);
+            result += (diffuse + specular) * atten;
+        }
+
+        FragColor = vec4(result, albedoSample.a);
     }
 )";
 
@@ -103,4 +112,18 @@ static GLuint createProgram(const char* vertSrc, const char* fragSrc) {
 
 GLuint createLitShaderProgram() {
     return createProgram(vertexShaderSrc, fragmentShaderSrc);
+}
+
+void setPointLights(GLuint program, const PointLight* lights, int count) {
+    if (count > MAX_POINT_LIGHTS) count = MAX_POINT_LIGHTS;
+
+    glUniform1i(glGetUniformLocation(program, "uLightCount"), count);
+    for (int i = 0; i < count; ++i) {
+        std::string posName   = "uLightPos["   + std::to_string(i) + "]";
+        std::string colorName = "uLightColor[" + std::to_string(i) + "]";
+        glUniform3f(glGetUniformLocation(program, posName.c_str()),
+            lights[i].position.x, lights[i].position.y, lights[i].position.z);
+        glUniform3f(glGetUniformLocation(program, colorName.c_str()),
+            lights[i].color.x, lights[i].color.y, lights[i].color.z);
+    }
 }
