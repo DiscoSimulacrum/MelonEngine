@@ -1,11 +1,11 @@
-#pragma once
+﻿#pragma once
 #include "Scene.h"
 #include "AssetLoader.h"
 #include "Camera.h"
-#include "Math.h"
+#include "MelonMath.h"
 #include <glad/glad.h>
 
-class TestScene : public Scene {
+class SceneTest1 : public Scene {
 public:
     void init()           override;
     void update(float dt) override;

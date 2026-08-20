@@ -39,6 +39,29 @@ struct Mat4 {
     }
 };
 
+inline Mat4 translate(Vec3 t) {
+    Mat4 m = Mat4::identity();
+    m.m[12] = t.x;
+    m.m[13] = t.y;
+    m.m[14] = t.z;
+    return m;
+}
+
+inline Mat4 scale(float s) {
+    Mat4 m = Mat4::identity();
+    m.m[0] = s; m.m[5] = s; m.m[10] = s;
+    return m;
+}
+
+inline Mat4 rotateY(float radians) {
+    Mat4 m = Mat4::identity();
+    float c = cosf(radians);
+    float s = sinf(radians);
+    m.m[0] = c;  m.m[8]  = s;
+    m.m[2] = -s; m.m[10] = c;
+    return m;
+}
+
 inline Mat4 lookAt(Vec3 eye, Vec3 center, Vec3 worldUp) {
     Vec3 f = (center - eye).normalized();
     Vec3 r = f.cross(worldUp).normalized();

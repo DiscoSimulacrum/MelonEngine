@@ -12,5 +12,8 @@ Mesh loadOBJ(const std::string& path);
 // Returns a zeroed Texture on failure.
 Texture loadTexture(const std::string& path);
 
+// Uploads a 1x1 solid-color texture, for meshes with no source texture.
+Texture loadSolidColorTexture(unsigned char r, unsigned char g, unsigned char b);
+
 void freeMesh(Mesh& mesh);
 void freeTexture(Texture& tex);

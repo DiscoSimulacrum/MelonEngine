@@ -17,14 +17,23 @@ void Camera::setAspect(float aspect) {
     rebuildProjection();
 }
 
+void Camera::setPose(Vec3 pos, float yawDeg, float pitchDeg) {
+    position = pos;
+    yaw      = yawDeg;
+    pitch    = pitchDeg;
+    rebuildView();
+}
+
 void Camera::update(float dt) {
-    // Mouse look
-    float dx, dy;
-    InputManager::getMouseDelta(dx, dy);
-    yaw   += dx * lookSpeed;
-    pitch -= dy * lookSpeed; // subtract so mouse-up = look up
-    if (pitch >  89.0f) pitch =  89.0f;
-    if (pitch < -89.0f) pitch = -89.0f;
+    // Mouse look (only while the cursor is captured)
+    if (InputManager::isCursorCaptured()) {
+        float dx, dy;
+        InputManager::getMouseDelta(dx, dy);
+        yaw   += dx * lookSpeed;
+        pitch -= dy * lookSpeed; // subtract so mouse-up = look up
+        if (pitch >  89.0f) pitch =  89.0f;
+        if (pitch < -89.0f) pitch = -89.0f;
+    }
 
     // Direction vectors from yaw/pitch
     float yr = yaw   * DEG2RAD;

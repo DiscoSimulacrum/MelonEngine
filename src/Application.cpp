@@ -4,11 +4,15 @@
 #include <GLFW/glfw3.h>
 
 #include "InputManager.h"
-#include "Scene.h"
-#include "TestScene.h"
+#include "SceneManager.h"
+#include "Scenes/SceneMainMenu.h"
+#include "Scenes/SceneTest1.h"
+#include "Scenes/SceneTest2.h"
+#include "Scenes/SceneTest3.h"
+#include "Scenes/SceneTest4.h"
 
-const int WIDTH  = 800;
-const int HEIGHT = 800;
+const int WIDTH  = 1280;
+const int HEIGHT = 720;
 
 int main() {
     if (!glfwInit()) {
@@ -35,14 +39,28 @@ int main() {
         return -1;
     }
 
-    glViewport(0, 0, WIDTH, HEIGHT);
+    // Framebuffer size in pixels can differ from WIDTH/HEIGHT (DPI scaling),
+    // so query it rather than trusting the window-creation request.
+    int fbWidth, fbHeight;
+    glfwGetFramebufferSize(window, &fbWidth, &fbHeight);
+    glViewport(0, 0, fbWidth, fbHeight);
     glClearColor(0.08f, 0.08f, 0.08f, 1.0f);
     glEnable(GL_DEPTH_TEST);
 
+    glfwSetFramebufferSizeCallback(window, [](GLFWwindow*, int width, int height) {
+        glViewport(0, 0, width, height);
+        InputManager::setFramebufferSize(width, height);
+    });
+
     InputManager::initialize(window);
 
-    std::unique_ptr<Scene> scene = std::make_unique<TestScene>();
-    scene->init();
+    SceneManager sceneManager;
+    sceneManager.registerScene("MainMenu", [] { return std::make_unique<SceneMainMenu>(); });
+    sceneManager.registerScene("Test1",    [] { return std::make_unique<SceneTest1>(); });
+    sceneManager.registerScene("Test2",    [] { return std::make_unique<SceneTest2>(); });
+    sceneManager.registerScene("Test3",    [] { return std::make_unique<SceneTest3>(); });
+    sceneManager.registerScene("Test4",    [] { return std::make_unique<SceneTest4>(); });
+    sceneManager.requestScene("MainMenu");
 
     float lastTime = static_cast<float>(glfwGetTime());
 
@@ -53,12 +71,12 @@ int main() {
 
         glfwPollEvents();
         InputManager::update();
-        scene->update(dt);
-        scene->render();
+        sceneManager.update(dt);
+        sceneManager.render();
         glfwSwapBuffers(window);
     }
 
-    scene->shutdown();
+    sceneManager.shutdown();
     glfwTerminate();
     return 0;
 }

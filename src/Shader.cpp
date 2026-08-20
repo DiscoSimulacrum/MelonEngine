@@ -1,10 +1,5 @@
-#include "TestScene.h"
-#include "InputManager.h"
+#include "Shader.h"
 #include <iostream>
-
-// =====================================================================
-// Shaders
-// =====================================================================
 
 static const char* vertexShaderSrc = R"(
     #version 330 core
@@ -61,13 +56,13 @@ static const char* fragmentShaderSrc = R"(
         float spec    = pow(max(dot(N, H), 0.0), 64.0);
         vec3  specular = spec * uLightColor * 0.3;
 
-        FragColor = vec4(ambient + diffuse + specular, albedoSample.a);
+        // Rim light: brightens edges facing away from the camera
+        float rim = pow(1.0 - max(dot(N, V), 0.0), 3.0);
+        vec3  rimLight = rim * uLightColor;
+
+        FragColor = vec4(ambient + diffuse + specular + rimLight, albedoSample.a);
     }
 )";
-
-// =====================================================================
-// Shader utils
-// =====================================================================
 
 static GLuint compileShader(GLenum type, const char* src) {
     GLuint shader = glCreateShader(type);
@@ -106,56 +101,6 @@ static GLuint createProgram(const char* vertSrc, const char* fragSrc) {
     return program;
 }
 
-// =====================================================================
-// Scene
-// =====================================================================
-
-void TestScene::init() {
-    shaderProgram = createProgram(vertexShaderSrc, fragmentShaderSrc);
-    mesh   = loadOBJ("assets/meshes/model.obj");
-    albedo = loadTexture("assets/textures/model.png");
-
-    glUseProgram(shaderProgram);
-    glUniform1i(glGetUniformLocation(shaderProgram, "uAlbedo"), 0);
-
-    InputManager::setCursorCaptured(true);
-}
-
-void TestScene::update(float dt) {
-    camera.update(dt);
-}
-
-void TestScene::render() {
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    glUseProgram(shaderProgram);
-
-    // Matrices
-    Mat4 model = Mat4::identity();
-    glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "uModel"),      1, GL_FALSE, model.m);
-    glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "uView"),       1, GL_FALSE, camera.viewMatrix());
-    glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "uProjection"), 1, GL_FALSE, camera.projectionMatrix());
-
-    // Lighting
-    glUniform3f(glGetUniformLocation(shaderProgram, "uLightDir"),   lightDir.x,   lightDir.y,   lightDir.z);
-    glUniform3f(glGetUniformLocation(shaderProgram, "uLightColor"), lightColor.x, lightColor.y, lightColor.z);
-    glUniform3f(glGetUniformLocation(shaderProgram, "uCameraPos"),
-        camera.position.x, camera.position.y, camera.position.z);
-
-    // Texture
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, albedo.id);
-
-    // Draw
-    glBindVertexArray(mesh.vao);
-    glDrawElements(GL_TRIANGLES, mesh.indexCount, GL_UNSIGNED_INT, 0);
-    glBindVertexArray(0);
-}
-
-void TestScene::shutdown() {
-    freeMesh(mesh);
-    freeTexture(albedo);
-    glDeleteProgram(shaderProgram);
-    shaderProgram = 0;
-    InputManager::setCursorCaptured(false);
+GLuint createLitShaderProgram() {
+    return createProgram(vertexShaderSrc, fragmentShaderSrc);
 }

@@ -1,5 +1,5 @@
-#pragma once
-#include "Math.h"
+﻿#pragma once
+#include "MelonMath.h"
 
 class Camera {
 public:
@@ -8,6 +8,7 @@ public:
 
     void update(float dt);
     void setAspect(float aspect);
+    void setPose(Vec3 pos, float yawDeg, float pitchDeg); // for static/scripted cameras (no input)
 
     const float* viewMatrix()       const { return _view.m; }
     const float* projectionMatrix() const { return _proj.m; }
