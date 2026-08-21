@@ -17,9 +17,15 @@ static constexpr float CAMERA_DISTANCE  = 9.0f;   // pulled back from the ring c
 static constexpr float CAMERA_PITCH_DEG = -13.0f; // tilted down so the ring's circular shape reads
 
 void SceneMainMenu::init() {
-    shaderProgram = createLitShaderProgram();
+    shaderProgram         = _sceneManager->shaders().getOrCreate("lit",      createLitShaderProgram);
+    emissiveShaderProgram = _sceneManager->shaders().getOrCreate("emissive", createEmissiveShaderProgram);
+
     glUseProgram(shaderProgram);
     glUniform1i(glGetUniformLocation(shaderProgram, "uAlbedo"), 0);
+    setFog(shaderProgram, {}, false); // uFogEnabled is program state shared via ShaderCache; must reset per scene
+
+    glUseProgram(emissiveShaderProgram);
+    glUniform1i(glGetUniformLocation(emissiveShaderProgram, "uAlbedo"), 0);
 
     camera.setPose(Vec3(0.0f, CAMERA_HEIGHT, CAMERA_DISTANCE), -90.0f, CAMERA_PITCH_DEG);
 
@@ -27,11 +33,11 @@ void SceneMainMenu::init() {
     exitTexture = loadSolidColorTexture(200, 30, 30);
 
     _items.clear();
-    _items.push_back({ "Test Scene 1", MenuItemType::Scene, "Test1", "assets/meshes/model.obj",                 160, 170, 220,      1.5}); // smooshed disco cube
-    _items.push_back({ "Test Scene 2", MenuItemType::Scene, "Test2", "assets/meshes/icosphere.obj",             205, 235, 205,      1.0}); // minecraft
-    _items.push_back({ "Test Scene 3", MenuItemType::Scene, "Test3", "assets/meshes/miltPlayer_menu.obj",       255, 255, 0  ,      7.0}); // bright yellow
-    _items.push_back({ "Test Scene 4", MenuItemType::Scene, "Test4", "assets/meshes/utah_teapot_lowpoly.obj",   245, 240, 230,      0.4}); // utah teapot
-    _items.push_back({ "Exit",         MenuItemType::Exit,  "",      "",                                        0,   0,   0  ,      1.0}); // Exit program
+    _items.push_back({ "Test Scene 1", MenuItemType::Scene, "Test1", "assets/meshes/model.obj",                         160, 170, 220,      1.5,    0.0f});          // smooshed disco cube
+    _items.push_back({ "Test Scene 2", MenuItemType::Scene, "Test2", "assets/meshes/dirtBlock.obj",                     205, 235, 205,      0.7,    0.0f});          // minecraft
+    _items.push_back({ "Test Scene 3", MenuItemType::Scene, "Test3", "assets/meshes/SceneTest3/cirno_menu.obj",         90,  170, 220,      4.5,    0.0f});         // cirno bust
+    _items.push_back({ "Test Scene 4", MenuItemType::Scene, "Test4", "assets/meshes/utah_teapot_lowpoly.obj",           245, 240, 230,      0.4,    -0.6f});        // utah teapot
+    _items.push_back({ "Exit",         MenuItemType::Exit,  "",      "",                                                0,   0,   0  ,      1.0,    0.0f});          // Exit program
 
     _itemMeshes.clear();
     _itemTextures.clear();
@@ -111,19 +117,30 @@ void SceneMainMenu::render() {
     glUniform3f(glGetUniformLocation(shaderProgram, "uCameraPos"),
         camera.position.x, camera.position.y, camera.position.z);
 
+    glUseProgram(emissiveShaderProgram);
+    glUniformMatrix4fv(glGetUniformLocation(emissiveShaderProgram, "uView"),       1, GL_FALSE, camera.viewMatrix());
+    glUniformMatrix4fv(glGetUniformLocation(emissiveShaderProgram, "uProjection"), 1, GL_FALSE, camera.projectionMatrix());
+
     float anglePerItem = 2.0f * PI / static_cast<float>(_items.size());
 
     for (size_t i = 0; i < _items.size(); ++i) {
         // +PI so the selected item (canonical angle 0) faces the camera at z = +RING_RADIUS
         // instead of landing on the far side of the ring at z = -RING_RADIUS.
         float angle = static_cast<float>(i) * anglePerItem + _ringRotation + PI;
-        Vec3  pos(RING_RADIUS * sinf(angle), 0.0f, -RING_RADIUS * cosf(angle));
+        Vec3  pos(RING_RADIUS * sinf(angle), _items[i].verticalOffset, -RING_RADIUS * cosf(angle));
 
-        bool isExit = (_items[i].type == MenuItemType::Exit);
+        bool isExit     = (_items[i].type == MenuItemType::Exit);
+        bool isEmissive = !isExit && _items[i].materialType == MaterialType::Emissive;
         Mat4 model = isExit
             ? translate(pos) * rotateY(PI * 0.5f) * scale(_items[i].scale)
             : translate(pos) * scale(_items[i].scale);
-        glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "uModel"), 1, GL_FALSE, model.m);
+
+        GLuint program = isEmissive ? emissiveShaderProgram : shaderProgram;
+        glUseProgram(program);
+        glUniformMatrix4fv(glGetUniformLocation(program, "uModel"), 1, GL_FALSE, model.m);
+        if (isEmissive) {
+            glUniform1f(glGetUniformLocation(program, "uEmissiveIntensity"), _items[i].emissiveIntensity);
+        }
 
         const Mesh&    mesh = isExit ? exitMesh    : _itemMeshes[i];
         const Texture& tex  = isExit ? exitTexture : _itemTextures[i];
@@ -148,6 +165,4 @@ void SceneMainMenu::shutdown() {
     _itemTextures.clear();
     freeMesh(exitMesh);
     freeTexture(exitTexture);
-    glDeleteProgram(shaderProgram);
-    shaderProgram = 0;
 }

@@ -5,12 +5,30 @@
 #include <iostream>
 
 void SceneTest3::init() {
-    shaderProgram = createLitShaderProgram();
-    mesh   = loadOBJ("assets/meshes/miltPlayer.obj");
-    albedo = loadSolidColorTexture(255, 255, 0);
+    shaderProgram = _sceneManager->shaders().getOrCreate("lit", createLitShaderProgram);
 
     glUseProgram(shaderProgram);
     glUniform1i(glGetUniformLocation(shaderProgram, "uAlbedo"), 0);
+    setFog(shaderProgram, {}, false); // uFogEnabled is program state shared via ShaderCache; must reset per scene
+
+    _parts.clear();
+    _parts.push_back({ "assets/meshes/SceneTest3/cirno_body.obj",    "",            "assets/textures/SceneTest3/cirno_body.png", 0,   0,   0   });
+    _parts.push_back({ "assets/meshes/SceneTest3/cirno_hair.obj",    "",            "assets/textures/SceneTest3/cirno_hair.png", 0,   0,   0   });
+    _parts.push_back({ "assets/meshes/SceneTest3/cirno_eyes.obj",    "",            "assets/textures/SceneTest3/cirno_eyes.png", 0,   0,   0   });
+    _parts.push_back({ "assets/meshes/SceneTest3/cirno_ice.obj",     "",            "",                                          90,  170, 220 }); // ice blue
+    _parts.push_back({ "assets/meshes/SceneTest3/cirno_bow.obj",     "",            "",                                          90,  170, 220 }); // ice blue
+    _parts.push_back({ "assets/meshes/SceneTest3/cirno_tie.obj",     "ClothesBow",  "",                                          220, 20,  20  }); // bright red
+    _parts.push_back({ "assets/meshes/SceneTest3/cirno_eyebrow.obj", "FaceEyebrow", "",                                          20,  80,  230 }); // primary blue
+    _parts.push_back({ "assets/meshes/SceneTest3/cirno_eyelash.obj", "FaceEyelash", "",                                          10,  10,  10  }); // black
+
+    _partMeshes.clear();
+    _partTextures.clear();
+    for (const MeshPart& part : _parts) {
+        _partMeshes.push_back(loadOBJ(part.meshPath, part.groupName));
+        _partTextures.push_back(part.texturePath.empty()
+            ? loadSolidColorTexture(part.colorR, part.colorG, part.colorB)
+            : loadTexture(part.texturePath));
+    }
 
     glClearColor(0.08f, 0.08f, 0.08f, 1.0f);
     InputManager::setCursorCaptured(true);
@@ -33,7 +51,8 @@ void SceneTest3::render() {
 
     glUseProgram(shaderProgram);
 
-    // Matrices
+    // Matrices (all parts share one model matrix: they're authored in the
+    // same object space so they line up when drawn together at identity)
     Mat4 model = Mat4::identity();
     glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "uModel"),      1, GL_FALSE, model.m);
     glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "uView"),       1, GL_FALSE, camera.viewMatrix());
@@ -44,20 +63,25 @@ void SceneTest3::render() {
     glUniform3f(glGetUniformLocation(shaderProgram, "uCameraPos"),
         camera.position.x, camera.position.y, camera.position.z);
 
-    // Texture
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, albedo.id);
+    // Draw each part of the assembled character with its own texture/color
+    for (size_t i = 0; i < _partMeshes.size(); ++i) {
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, _partTextures[i].id);
+        glBindVertexArray(_partMeshes[i].vao);
+        glDrawElements(GL_TRIANGLES, _partMeshes[i].indexCount, GL_UNSIGNED_INT, 0);
+    }
 
-    // Draw
-    glBindVertexArray(mesh.vao);
-    glDrawElements(GL_TRIANGLES, mesh.indexCount, GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
 }
 
 void SceneTest3::shutdown() {
-    freeMesh(mesh);
-    freeTexture(albedo);
-    glDeleteProgram(shaderProgram);
-    shaderProgram = 0;
+    for (Mesh& mesh : _partMeshes) {
+        freeMesh(mesh);
+    }
+    _partMeshes.clear();
+    for (Texture& tex : _partTextures) {
+        freeTexture(tex);
+    }
+    _partTextures.clear();
     InputManager::setCursorCaptured(false);
 }

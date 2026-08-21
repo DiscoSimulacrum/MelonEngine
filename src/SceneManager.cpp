@@ -1,4 +1,4 @@
-#include "SceneManager.h"
+ #include "SceneManager.h"
 #include <iostream>
 
 void SceneManager::registerScene(const std::string& name, SceneFactory factory) {
@@ -40,4 +40,5 @@ void SceneManager::shutdown() {
         _current->shutdown();
         _current.reset();
     }
+    _shaderCache.shutdown();
 }

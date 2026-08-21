@@ -144,6 +144,7 @@
     <ClCompile Include="src\InputManager.cpp" />
     <ClCompile Include="src\SceneManager.cpp" />
     <ClCompile Include="src\Shader.cpp" />
+    <ClCompile Include="src\ShaderCache.cpp" />
     <ClCompile Include="src\Scenes\SceneMainMenu.cpp" />
     <ClCompile Include="src\Scenes\SceneTest1.cpp" />
     <ClCompile Include="src\Scenes\SceneTest2.cpp" />
@@ -158,6 +159,7 @@
     <ClInclude Include="src\Mesh.h" />
     <ClInclude Include="src\SceneManager.h" />
     <ClInclude Include="src\Shader.h" />
+    <ClInclude Include="src\ShaderCache.h" />
     <ClInclude Include="src\Texture.h" />
     <ClInclude Include="src\Scenes\Scene.h" />
     <ClInclude Include="src\Scenes\SceneMainMenu.h" />

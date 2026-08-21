@@ -14,8 +14,8 @@ public:
     void render()         override;
     void shutdown()       override;
 
-    // Position is overwritten each frame to track the camera; color is 4x the prior (2,2,2) brightness.
-    std::vector<PointLight> lights = { { Vec3(0.0f, 0.0f, 0.0f), Vec3(8.0f, 8.0f, 8.0f) } };
+    // Position is overwritten each frame to track the camera
+    std::vector<PointLight> lights = { { Vec3(0.0f, 0.0f, 0.0f), Vec3(3.0f, 3.0f, 3.0f) } };
 
 private:
     Mesh    mesh;

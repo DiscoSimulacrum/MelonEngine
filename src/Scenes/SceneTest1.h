@@ -19,6 +19,9 @@ public:
 private:
     Mesh    mesh;
     Texture albedo;
-    GLuint  shaderProgram = 0;
+    GLuint  shaderProgram         = 0; // "lit" program, shared via ShaderCache
+    GLuint  emissiveShaderProgram = 0; // "emissive" program, shared via ShaderCache
     Camera  camera;
+
+    float emissiveIntensity = 1.5f;
 };

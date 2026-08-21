@@ -19,7 +19,10 @@ struct MenuEntry {
     std::string  sceneName; // only used when type == MenuItemType::Scene
     std::string  meshPath;  // only used when type == MenuItemType::Scene; Exit always uses exitMesh
     unsigned char colorR, colorG, colorB; // solid color for the item's model
-    float scale = 1.0f;     // uniform scale applied to the item's mesh in the ring
+    float scale = 1.0f;     // uniform scale applied to the item's mesh in the menu ring
+    float verticalOffset = 0.0f; //adjsut the vertical position of the individual items in the menu ring
+    MaterialType materialType    = MaterialType::Lit; // which shader this item renders with
+    float        emissiveIntensity = 1.0f;            // only used when materialType == Emissive
 };
 
 // A Tomb-Raider/Silent-Hill-style ring of models: A/D spin the ring and Enter selects the item/scene
@@ -45,7 +48,8 @@ private:
     bool  _isRotating      = false;
 
     Camera  camera;
-    GLuint  shaderProgram = 0;
+    GLuint  shaderProgram         = 0; // "lit" program, shared via ShaderCache
+    GLuint  emissiveShaderProgram = 0; // "emissive" program, shared via ShaderCache
     std::vector<Mesh>    _itemMeshes;   // one mesh per entry in _items, indices aligned (unused/zeroed for Exit)
     std::vector<Texture> _itemTextures; // one solid-color texture per entry in _items, indices aligned
     Mesh    exitMesh;

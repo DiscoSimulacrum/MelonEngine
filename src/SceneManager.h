@@ -4,6 +4,7 @@
 #include <functional>
 #include <memory>
 #include "Scenes/Scene.h"
+#include "ShaderCache.h"
 
 class SceneManager {
 public:
@@ -16,6 +17,8 @@ public:
     void render();
     void shutdown();
 
+    ShaderCache& shaders() { return _shaderCache; }
+
 private:
     void applyPendingTransition();
 
@@ -23,4 +26,5 @@ private:
     std::unique_ptr<Scene> _current;
     std::string            _pendingName;
     bool                   _hasPending = false;
+    ShaderCache             _shaderCache;
 };

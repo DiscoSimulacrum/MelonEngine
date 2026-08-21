@@ -64,6 +64,10 @@ int main() {
 
     float lastTime = static_cast<float>(glfwGetTime());
 
+    constexpr float FPS_REPORT_INTERVAL = 2.0f; // seconds between console FPS reports
+    float fpsTimer     = 0.0f;
+    int   fpsFrameCount = 0;
+
     while (!glfwWindowShouldClose(window)) {
         float now = static_cast<float>(glfwGetTime());
         float dt  = now - lastTime;
@@ -74,6 +78,14 @@ int main() {
         sceneManager.update(dt);
         sceneManager.render();
         glfwSwapBuffers(window);
+
+        fpsTimer += dt;
+        ++fpsFrameCount;
+        if (fpsTimer >= FPS_REPORT_INTERVAL) {
+            std::cout << "[FPS] " << (static_cast<float>(fpsFrameCount) / fpsTimer) << "\n";
+            fpsTimer      = 0.0f;
+            fpsFrameCount = 0;
+        }
     }
 
     sceneManager.shutdown();

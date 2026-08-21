@@ -11,12 +11,13 @@ static constexpr float ORBIT_HEIGHT = 3.0f;
 static constexpr float ORBIT_SPEED  = 0.7f; // radians/sec
 
 void SceneTest4::init() {
-    shaderProgram = createLitShaderProgram();
+    shaderProgram = _sceneManager->shaders().getOrCreate("lit", createLitShaderProgram);
     mesh   = loadOBJ("assets/meshes/utah_teapot.obj");
     albedo = loadSolidColorTexture(245, 240, 230); // pale off-white porcelain
 
     glUseProgram(shaderProgram);
     glUniform1i(glGetUniformLocation(shaderProgram, "uAlbedo"), 0);
+    setFog(shaderProgram, {}, false); // uFogEnabled is program state shared via ShaderCache; must reset per scene
 
     glClearColor(0.08f, 0.08f, 0.08f, 1.0f);
     InputManager::setCursorCaptured(true);
@@ -47,7 +48,7 @@ void SceneTest4::render() {
     glUseProgram(shaderProgram);
 
     // Matrices
-    Mat4 model = Mat4::identity();
+    Mat4 model = translate(Vec3(0.0f, -2.0f, 0.0f));
     glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "uModel"),      1, GL_FALSE, model.m);
     glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "uView"),       1, GL_FALSE, camera.viewMatrix());
     glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "uProjection"), 1, GL_FALSE, camera.projectionMatrix());
@@ -70,7 +71,5 @@ void SceneTest4::render() {
 void SceneTest4::shutdown() {
     freeMesh(mesh);
     freeTexture(albedo);
-    glDeleteProgram(shaderProgram);
-    shaderProgram = 0;
     InputManager::setCursorCaptured(false);
 }

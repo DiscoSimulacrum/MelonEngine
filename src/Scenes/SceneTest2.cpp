@@ -4,16 +4,25 @@
 #include "Shader.h"
 #include <iostream>
 
+static constexpr float FOG_START = 8.0f;  // distance from camera where fog begins blending in
+static constexpr float FOG_END   = 30.0f; // distance from camera where geometry is fully fogged out
+
 void SceneTest2::init() {
-    shaderProgram = createLitShaderProgram();
-    mesh   = loadOBJ("assets/meshes/iscv2.obj");
+    shaderProgram = _sceneManager->shaders().getOrCreate("lit", createLitShaderProgram);
+    mesh   = loadOBJ("assets/meshes/lost_empire.obj");
     albedo = loadSolidColorTexture(205, 235, 205);
 
     glUseProgram(shaderProgram);
     glUniform1i(glGetUniformLocation(shaderProgram, "uAlbedo"), 0);
 
+    // Fog color matches the clear color so distant geometry fades into the
+    // background instead of showing a hard fog "wall".
+    setFog(shaderProgram, { Vec3(0.08f, 0.08f, 0.08f), FOG_START, FOG_END }, true);
+
     glClearColor(0.08f, 0.08f, 0.08f, 1.0f);
     InputManager::setCursorCaptured(true);
+
+    camera.moveSpeed = 10.0f; //make move fasterer
 }
 
 void SceneTest2::update(float dt) {
@@ -36,7 +45,7 @@ void SceneTest2::render() {
     glUseProgram(shaderProgram);
 
     // Matrices
-    Mat4 model = Mat4::identity();
+    Mat4 model = translate(Vec3(0.0f, -20.0f, 0.0f));
     glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "uModel"),      1, GL_FALSE, model.m);
     glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "uView"),       1, GL_FALSE, camera.viewMatrix());
     glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "uProjection"), 1, GL_FALSE, camera.projectionMatrix());
@@ -59,7 +68,5 @@ void SceneTest2::render() {
 void SceneTest2::shutdown() {
     freeMesh(mesh);
     freeTexture(albedo);
-    glDeleteProgram(shaderProgram);
-    shaderProgram = 0;
     InputManager::setCursorCaptured(false);
 }

@@ -81,7 +81,7 @@ static unsigned int emitVertex(
     return idx;
 }
 
-Mesh loadOBJ(const std::string& path) {
+Mesh loadOBJ(const std::string& path, const std::string& groupName) {
     std::ifstream file(path);
     if (!file.is_open()) {
         std::cerr << "loadOBJ: cannot open " << path << "\n";
@@ -94,6 +94,12 @@ Mesh loadOBJ(const std::string& path) {
     std::vector<float>                verts;
     std::vector<unsigned int>         indices;
     std::unordered_map<OBJIndex, unsigned int, OBJIndexHash> cache;
+
+    // Some exports bundle multiple named parts (via "o <name>") into one file
+    // sharing the same vertex pool; when groupName is set, only faces inside
+    // that group are turned into geometry (v/vt/vn are still parsed for all
+    // groups, since a later group's faces can reference earlier vertex data).
+    bool inTargetGroup = groupName.empty();
 
     std::string line;
     while (std::getline(file, line)) {
@@ -114,7 +120,15 @@ Mesh loadOBJ(const std::string& path) {
             std::array<float, 3> vn;
             ss >> vn[0] >> vn[1] >> vn[2];
             normals.push_back(vn);
+        } else if (prefix == "o" || prefix == "g") {
+            if (!groupName.empty()) {
+                std::string name;
+                ss >> name;
+                inTargetGroup = (name == groupName);
+            }
         } else if (prefix == "f") {
+            if (!inTargetGroup) continue;
+
             // Collect all tokens on this face line, then fan-triangulate
             std::vector<OBJIndex> face;
             std::string token;

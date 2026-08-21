@@ -41,6 +41,11 @@ static const char* fragmentShaderSrc = R"(
     uniform vec3 uLightPos[MAX_POINT_LIGHTS];
     uniform vec3 uLightColor[MAX_POINT_LIGHTS];
 
+    uniform int   uFogEnabled;
+    uniform vec3  uFogColor;
+    uniform float uFogStart;
+    uniform float uFogEnd;
+
     void main() {
         vec4 albedoSample = texture(uAlbedo, vTexCoord);
         vec3 albedo = albedoSample.rgb;
@@ -69,7 +74,44 @@ static const char* fragmentShaderSrc = R"(
             result += (diffuse + specular) * atten;
         }
 
+        if (uFogEnabled != 0) {
+            float dist      = length(uCameraPos - vWorldPos);
+            float fogFactor = clamp((dist - uFogStart) / (uFogEnd - uFogStart), 0.0, 1.0);
+            result          = mix(result, uFogColor, fogFactor);
+        }
+
         FragColor = vec4(result, albedoSample.a);
+    }
+)";
+
+static const char* emissiveVertexShaderSrc = R"(
+    #version 330 core
+    layout (location = 0) in vec3 aPos;
+    layout (location = 2) in vec2 aTexCoord;
+
+    uniform mat4 uModel;
+    uniform mat4 uView;
+    uniform mat4 uProjection;
+
+    out vec2 vTexCoord;
+
+    void main() {
+        gl_Position = uProjection * uView * uModel * vec4(aPos, 1.0);
+        vTexCoord   = aTexCoord;
+    }
+)";
+
+static const char* emissiveFragmentShaderSrc = R"(
+    #version 330 core
+    in  vec2 vTexCoord;
+    out vec4 FragColor;
+
+    uniform sampler2D uAlbedo;
+    uniform float     uEmissiveIntensity;
+
+    void main() {
+        vec4 albedoSample = texture(uAlbedo, vTexCoord);
+        FragColor = vec4(albedoSample.rgb * uEmissiveIntensity, albedoSample.a);
     }
 )";
 
@@ -114,6 +156,10 @@ GLuint createLitShaderProgram() {
     return createProgram(vertexShaderSrc, fragmentShaderSrc);
 }
 
+GLuint createEmissiveShaderProgram() {
+    return createProgram(emissiveVertexShaderSrc, emissiveFragmentShaderSrc);
+}
+
 void setPointLights(GLuint program, const PointLight* lights, int count) {
     if (count > MAX_POINT_LIGHTS) count = MAX_POINT_LIGHTS;
 
@@ -126,4 +172,11 @@ void setPointLights(GLuint program, const PointLight* lights, int count) {
         glUniform3f(glGetUniformLocation(program, colorName.c_str()),
             lights[i].color.x, lights[i].color.y, lights[i].color.z);
     }
+}
+
+void setFog(GLuint program, const Fog& fog, bool enabled) {
+    glUniform1i(glGetUniformLocation(program, "uFogEnabled"), enabled ? 1 : 0);
+    glUniform3f(glGetUniformLocation(program, "uFogColor"), fog.color.x, fog.color.y, fog.color.z);
+    glUniform1f(glGetUniformLocation(program, "uFogStart"), fog.start);
+    glUniform1f(glGetUniformLocation(program, "uFogEnd"),   fog.end);
 }

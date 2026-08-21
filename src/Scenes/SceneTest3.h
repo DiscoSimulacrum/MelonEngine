@@ -1,4 +1,5 @@
-﻿#pragma once
+#pragma once
+#include <string>
 #include <vector>
 #include "Scene.h"
 #include "AssetLoader.h"
@@ -6,6 +7,13 @@
 #include "MelonMath.h"
 #include "Shader.h"
 #include <glad/glad.h>
+
+struct MeshPart {
+    std::string   meshPath;
+    std::string   groupName;              // empty => load the whole file (see loadOBJ)
+    std::string   texturePath;            // empty => use the solid color below instead
+    unsigned char colorR, colorG, colorB; // only used when texturePath is empty
+};
 
 class SceneTest3 : public Scene {
 public:
@@ -23,8 +31,10 @@ public:
     };
 
 private:
-    Mesh    mesh;
-    Texture albedo;
+    std::vector<MeshPart> _parts;
+    std::vector<Mesh>     _partMeshes;   // one mesh per entry in _parts, indices aligned
+    std::vector<Texture>  _partTextures; // one texture per entry in _parts, indices aligned
+
     GLuint  shaderProgram = 0;
     Camera  camera;
 };
