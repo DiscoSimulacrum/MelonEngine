@@ -43,7 +43,7 @@ Thumbs.db
 *.slo
 *.lo
 *.o
-*.obj
+
 
 # Precompiled Headers
 *.gch
