@@ -4,16 +4,19 @@
 #include "Shader.h"
 #include <iostream>
 
-static constexpr float FOG_START = 8.0f;  // distance from camera where fog begins blending in
-static constexpr float FOG_END   = 30.0f; // distance from camera where geometry is fully fogged out
+static constexpr float FOG_START = 24.0f;  // distance from camera where fog begins blending in
+static constexpr float FOG_END   = 60.0f; // distance from camera where geometry is fully fogged out
 
 void SceneTest2::init() {
     shaderProgram = _sceneManager->shaders().getOrCreate("lit", createLitShaderProgram);
     mesh   = loadOBJ("assets/meshes/lost_empire.obj");
-    albedo = loadSolidColorTexture(205, 235, 205);
+    //albedo = loadSolidColorTexture(205, 235, 205);
+    albedo = loadTexture("assets/textures/lost_empire-RGBA.png");
 
     glUseProgram(shaderProgram);
     glUniform1i(glGetUniformLocation(shaderProgram, "uAlbedo"), 0);
+
+    setPointLights(shaderProgram, lights.data(), static_cast<int>(lights.size()));
 
     // Fog color matches the clear color so distant geometry fades into the
     // background instead of showing a hard fog "wall".

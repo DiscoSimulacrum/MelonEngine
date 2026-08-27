@@ -68,7 +68,7 @@ static const char* fragmentShaderSrc = R"(
             vec3  diffuse = diff * uLightColor[i] * albedo;
 
             // Specular (Blinn-Phong)
-            float spec     = pow(max(dot(N, H), 0.0), 64.0);
+            float spec     = pow(max(dot(N, H), 0.0), 32.0);
             vec3  specular = spec * uLightColor[i] * 0.3;
 
             result += (diffuse + specular) * atten;

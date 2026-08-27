@@ -3,6 +3,7 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
+#include "Camera.h"
 #include "InputManager.h"
 #include "SceneManager.h"
 #include "Scenes/SceneMainMenu.h"
@@ -82,7 +83,16 @@ int main() {
         fpsTimer += dt;
         ++fpsFrameCount;
         if (fpsTimer >= FPS_REPORT_INTERVAL) {
-            std::cout << "[FPS] " << (static_cast<float>(fpsFrameCount) / fpsTimer) << "\n";
+            std::cout << "[FPS] " << (static_cast<float>(fpsFrameCount) / fpsTimer);
+
+            if (const Scene* scene = sceneManager.currentScene()) {
+                if (const Camera* camera = scene->getCamera()) {
+                    std::cout << " | Camera (" << camera->position.x << ", "
+                        << camera->position.y << ", " << camera->position.z << ")";
+                }
+            }
+
+            std::cout << "\n";
             fpsTimer      = 0.0f;
             fpsFrameCount = 0;
         }

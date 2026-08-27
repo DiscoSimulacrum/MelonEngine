@@ -18,7 +18,7 @@ void SceneTest3::init() {
     _parts.push_back({ "assets/meshes/SceneTest3/cirno_ice.obj",     "",            "",                                          90,  170, 220 }); // ice blue
     _parts.push_back({ "assets/meshes/SceneTest3/cirno_bow.obj",     "",            "",                                          90,  170, 220 }); // ice blue
     _parts.push_back({ "assets/meshes/SceneTest3/cirno_tie.obj",     "ClothesBow",  "",                                          220, 20,  20  }); // bright red
-    _parts.push_back({ "assets/meshes/SceneTest3/cirno_eyebrow.obj", "FaceEyebrow", "",                                          20,  80,  230 }); // primary blue
+    _parts.push_back({ "assets/meshes/SceneTest3/cirno_eyebrow.obj", "FaceEyebrow", "",                                          90,  160,  230 }); //  blue
     _parts.push_back({ "assets/meshes/SceneTest3/cirno_eyelash.obj", "FaceEyelash", "",                                          10,  10,  10  }); // black
 
     _partMeshes.clear();

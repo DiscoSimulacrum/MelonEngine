@@ -22,6 +22,8 @@ public:
     void render()         override;
     void shutdown()       override;
 
+    const Camera* getCamera() const override { return &camera; }
+
     // Classic 3-point rig: bright key from the camera side, dim cool fill
     // from the opposite side, and a rim/back light behind the subject.
     std::vector<PointLight> lights = {

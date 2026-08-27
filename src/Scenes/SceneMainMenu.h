@@ -34,6 +34,8 @@ public:
     void render()         override;
     void shutdown()       override;
 
+    const Camera* getCamera() const override { return &camera; }
+
 private:
     void rotateToNext(int direction); // -1 = previous (A), +1 = next (D)
     void confirmSelection();

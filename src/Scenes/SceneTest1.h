@@ -14,7 +14,9 @@ public:
     void render()         override;
     void shutdown()       override;
 
-    std::vector<PointLight> lights = { { Vec3(2.7f, 6.7f, 3.4f), Vec3(1.0f, 1.0f, 1.0f) } };
+    const Camera* getCamera() const override { return &camera; }
+
+    std::vector<PointLight> lights = { { Vec3(2.7f, 6.7f, 3.4f), Vec3(2.0f, 2.0f, 2.0f) } };
 
 private:
     Mesh    mesh;

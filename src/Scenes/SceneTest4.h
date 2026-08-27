@@ -14,6 +14,8 @@ public:
     void render()         override;
     void shutdown()       override;
 
+    const Camera* getCamera() const override { return &camera; }
+
     // Red, green, blue lights orbiting the teapot; positions are updated each frame.
     std::vector<PointLight> lights = {
         { Vec3(0.0f, 2.0f, 0.0f), Vec3(3.0f, 0.0f, 0.0f) }, // red

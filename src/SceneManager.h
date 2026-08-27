@@ -18,6 +18,7 @@ public:
     void shutdown();
 
     ShaderCache& shaders() { return _shaderCache; }
+    Scene* currentScene() const { return _current.get(); }
 
 private:
     void applyPendingTransition();

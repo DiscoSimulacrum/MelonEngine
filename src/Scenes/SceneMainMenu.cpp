@@ -10,7 +10,7 @@
 
 static constexpr float PI               = 3.14159265358979f;
 static constexpr float RING_RADIUS      = 5.0f;
-static constexpr float ROTATION_SECONDS = 0.25f; // "quickly rotate, stopping at the next item"
+static constexpr float ROTATION_SECONDS = 0.25f; // quickly rotates, stopping at the next item
 
 static constexpr float CAMERA_HEIGHT    = 1.3f;   // raised above the ring plane
 static constexpr float CAMERA_DISTANCE  = 9.0f;   // pulled back from the ring center (also shrinks apparent model size)
